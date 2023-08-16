@@ -4,6 +4,7 @@ from typing import Final
 
 class Arguments:
 
+    # TODO: change to typer
     def __init__(self):
         self.args = Arguments.parse_arguments()
 
@@ -26,6 +27,7 @@ class HandleFile:
 
     @staticmethod
     def read_file(file_path) -> list[str]:
+        # TODO: Async file handling
         with open(file_path, 'r') as file:
             lines = file.readlines()
 
