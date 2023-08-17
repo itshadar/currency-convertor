@@ -1,6 +1,6 @@
 import anyio
 from currency_exchange.exchange import Exchange
-from currency_exchange.exchange_service import FrankfurterExchangeService
+from currency_exchange.exchange_client import FrankfurterExchangeService
 from currency_exchange.input_handler import Arguments
 from currency_exchange.input_handler import HandleFile
 
