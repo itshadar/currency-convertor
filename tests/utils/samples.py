@@ -1,6 +1,6 @@
 from .constants import USD_CODE, ILS_CODE
 
-
+# TODO:
 class HandleFileTestSample:
 
     file_lines: list[str] = [USD_CODE, ILS_CODE, '3.6', '4', '100', '25']

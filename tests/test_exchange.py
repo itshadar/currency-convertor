@@ -3,7 +3,7 @@ from currency_exchange.exchange import Exchange
 from tests.utils.samples import ExchangeTestSample
 from tests.utils.constants import USD_CODE, ILS_CODE
 
-
+# TODO:
 class TestExchange:
 
     @pytest.mark.parametrize("rate", ExchangeTestSample.rates)

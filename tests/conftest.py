@@ -2,7 +2,7 @@ import pytest
 from tests.utils.mocks import ExchangeServiceMock
 from tests.utils.constants import USD_CODE, ILS_CODE
 from currency_exchange.exchange import Exchange
-from currency_exchange.exchange_service import FrankfurterExchangeService
+from currency_exchange.exchange_client import FrankfurterExchangeService
 from httpx import AsyncClient
 
 
@@ -23,6 +23,7 @@ def mock_main_arguments(mocker):
     mock_args.get_file_path.return_value = file_path
     mock_arguments.return_value = mock_args
     return mock_arguments
+
 
 @pytest.fixture
 def mock_exchange_service():

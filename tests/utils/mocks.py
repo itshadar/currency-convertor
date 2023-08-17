@@ -1,4 +1,4 @@
-from currency_exchange.exchange_service import ExchangeService
+from currency_exchange.exchange_client import ExchangeService
 from .constants import MOCK_EXCHANGE_RATE
 
 

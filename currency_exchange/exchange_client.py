@@ -27,7 +27,7 @@ class ExchangeService(ABC):
 
 class FrankfurterExchangeService(ExchangeService):
 
-    # Implement context manager that can manage async connection pool (__aenter__ and __aexit)
+    # Implement context manager that can manage async connection pool context manager (__aenter__ and __aexit)
     # Read about managing connection pool with httpx
     async def fetch_currency_rate(self, from_curr: str, to_curr: str) -> float:
 
@@ -38,7 +38,9 @@ class FrankfurterExchangeService(ExchangeService):
 
             response.raise_for_status()
             response_data = response.json()
+            # TODO: use pydantic
             return float(response_data["rates"][to_curr])
 
+        # Raise abstract errors (follows by the interface's guideline)
         except (httpx.HTTPError, KeyError) as e:
             raise
