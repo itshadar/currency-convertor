@@ -1,5 +1,5 @@
 from .exchange_client import ExchangeClientBase
-from httpx import AsyncClient, HTTPError
+from httpx import AsyncClient, HTTPError, HTTPStatusError
 
 
 class HTTPExchangeClient(ExchangeClientBase):
@@ -14,11 +14,12 @@ class HTTPExchangeClient(ExchangeClientBase):
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        if exc_type is HTTPError:
-            raise ConnectionError from exc_type
+
+        if exc_type in (HTTPError, HTTPStatusError):
+            raise ConnectionError from exc_val
 
         if exc_type is ValueError:
-            raise ValueError from exc_type
+            raise ValueError from exc_val
 
         await self.client.aclose()
 
