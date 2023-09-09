@@ -1,4 +1,5 @@
 from argparse import Namespace, ArgumentParser #TODO: REPLACE TO ARGX
+from aiofiles import open
 from typing import Final
 
 
@@ -26,10 +27,10 @@ class HandleFile:
     VALUES_INDEX: Final[int] = 2
 
     @staticmethod
-    def read_file(file_path) -> list[str]:
-        # TODO: Async file handling
-        with open(file_path, 'r') as file:
-            lines = file.readlines()
+    async def read_file(file_path) -> list[str]:
+
+        async with open(file_path, mode='r') as f:
+            lines = await f.readlines()
 
         return lines
 
@@ -41,8 +42,8 @@ class HandleFile:
         return from_curr, to_curr, values
 
     @staticmethod
-    def handle_input(file_path) -> tuple[str, str, list[float]]:
-        lines = HandleFile.read_file(file_path)
+    async def handle_input(file_path) -> tuple[str, str, list[float]]:
+        lines = await HandleFile.read_file(file_path)
         return HandleFile.parse_input(lines)
 
 
