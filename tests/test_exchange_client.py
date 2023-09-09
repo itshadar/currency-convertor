@@ -1,54 +1,25 @@
-import httpx
 import pytest
-from httpx import AsyncClient
-from tests.utils.samples import ExchangeServiceTestSample
-from tests.utils.constants import USD_CODE, ILS_CODE, MOCK_EXCHANGE_RATE
+from tests.conftest import mock_exchange_client
+from currency_exchange.exchange_client import ExchangeClientBase
+from tests.utils.constants import USD_CODE, ILS_CODE
 
 
-class TestExchangeService:
+class TestExchangeClient:
 
-    @pytest.mark.asyncio
-    async def test_exchange_get_currency_rate(self, mock_exchange_service):
-        currency_rate = await mock_exchange_service.get_currency_rate(from_curr=USD_CODE, to_curr=ILS_CODE)
-        assert currency_rate == MOCK_EXCHANGE_RATE
-
-    @pytest.mark.asyncio
-    async def test_exchange_get_same_currency_rate(self, mock_exchange_service):
-        currency_rate = await mock_exchange_service.get_currency_rate(from_curr=USD_CODE, to_curr=USD_CODE)
-        assert currency_rate == 1.0
+    def test_args_order_of_fetch_currency_rate(self):
+        args = ExchangeClientBase.fetch_currency_rate.__code__.co_varnames
+        excepted_args_orders = (("from_curr", "to_curr"), ("to_curr", "from_curr"))
+        actual_args_order = args[1:3]
+        assert actual_args_order in excepted_args_orders
 
     @pytest.mark.asyncio
-    async def test_exchange_get_currency_rate_return_float(self, mock_exchange_service):
-        currency_rate = await mock_exchange_service.get_currency_rate(from_curr=USD_CODE, to_curr=ILS_CODE)
-        assert isinstance(currency_rate, float)
-
-
-class TestFrankfurterExchangeService:
+    async def test_exchange_get_same_currency_rate(self, mock_exchange_client):
+        actual_currency_rate = await mock_exchange_client.get_exchange_currency_rate(from_curr=USD_CODE, to_curr=USD_CODE)
+        excepted_rate = 1.0
+        assert actual_currency_rate == excepted_rate
 
     @pytest.mark.asyncio
-    async def test_exchange_get_same_currency_rate(self, frankfurter_exchange_service):
-        currency_rate = await frankfurter_exchange_service.get_currency_rate(from_curr=USD_CODE, to_curr=USD_CODE)
-        assert currency_rate == 1.0
-
-    @pytest.mark.parametrize("rate", ExchangeServiceTestSample.valid_rates_format)
-    @pytest.mark.asyncio
-    async def test_fetch_currency_rate(self, rate, httpx_mock, frankfurter_exchange_service):
-        mock_response_data = {"rates": {"ILS": rate}}
-        httpx_mock.add_response(json=mock_response_data)
-        async with AsyncClient() as mock_client:
-            currency_rate = await frankfurter_exchange_service.fetch_currency_rate(from_curr=USD_CODE, to_curr=ILS_CODE)
-
-        assert currency_rate == float(rate)
-
-    @pytest.mark.asyncio
-    async def test_raise_key_error_fetch_currency_rate(self, httpx_mock, frankfurter_exchange_service, frankfurter_exchange_service_get_key_error):
-        with pytest.raises(KeyError, match=".*rates.*"):
-            async with AsyncClient() as mock_client:
-                await frankfurter_exchange_service.fetch_currency_rate(from_curr=USD_CODE, to_curr=ILS_CODE)
-
-    @pytest.mark.asyncio
-    async def test_raise_http_error_fetch_currency_rate(self, httpx_mock, frankfurter_exchange_service):
-        httpx_mock.add_exception(httpx.HTTPError("http error message"))
-        async with AsyncClient() as mock_client:
-            with pytest.raises(httpx.HTTPError):
-                await frankfurter_exchange_service.fetch_currency_rate(from_curr=USD_CODE, to_curr=ILS_CODE)
+    async def test_exchange_get_currency_rate(self, mock_exchange_client):
+        actual_currency_rate = await mock_exchange_client.get_exchange_currency_rate(from_curr=USD_CODE, to_curr=ILS_CODE)
+        excepted_rate = mock_exchange_client.MOCK_RATE
+        assert actual_currency_rate == excepted_rate
