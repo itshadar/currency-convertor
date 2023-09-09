@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import abstractmethod, ABC
 from typing import Final, Protocol
 
 
@@ -6,12 +6,10 @@ class IExchangeClient(Protocol):
 
     async def get_exchange_currency_rate(self, from_curr: str, to_curr: str) -> float:
         """
-
         """
 
     async def _get_currency_rate(self, from_curr: str, to_curr: str) -> float:
         """
-
         """
 
     async def fetch_currency_rate(self, from_curr: str, to_curr: str) -> float:
@@ -41,8 +39,13 @@ class ExchangeClientBase(IExchangeClient, ABC):
     def check_same_currency(func):
         async def inner(*args, **kwargs):
 
-            # TODO: TEST THIS!!!!
-            from_curr_val, to_curr_val = args[1], args[2]
+
+            if len(args) > 2:
+                from_curr_val, to_curr_val = args[1], args[2]
+
+            elif set(["from_curr", "to_curr"]).issubset(kwargs.keys()):
+                from_curr_val, to_curr_val = kwargs["from_curr"], kwargs["to_curr"]
+
             if from_curr_val == to_curr_val:
                 return ExchangeClientBase.SAME_CURR_RATE
 
@@ -50,9 +53,10 @@ class ExchangeClientBase(IExchangeClient, ABC):
 
         return inner
 
+    @abstractmethod
     async def _get_currency_rate(self, from_curr: str, to_curr: str) -> float:
-        """Call the fetch_currency_rate method. """
-        #return await self.fetch_currency_rate(from_curr, to_curr)
+        """calls the fetch_currency_rate method. """
 
+    @abstractmethod
     async def fetch_currency_rate(self, from_curr, to_curr) -> float:
         """Fetch the currency rate from a data source. Raise connection error if failed"""

@@ -1,8 +1,9 @@
 from .exchange_client import ExchangeClientBase
 from httpx import AsyncClient, HTTPError, HTTPStatusError
+from abc import abstractmethod, ABC
 
 
-class HTTPExchangeClient(ExchangeClientBase):
+class HTTPExchangeClient(ExchangeClientBase, ABC):
     """
     All subclasses of this instance can raise HTTPError / Value Error.
     """
@@ -28,6 +29,7 @@ class HTTPExchangeClient(ExchangeClientBase):
         async with self:
             return await self.fetch_currency_rate(from_curr, to_curr)
 
+    @abstractmethod
     async def fetch_currency_rate(self, from_curr, to_curr) -> float:
         """
         Fetch the currency rate from http request.
