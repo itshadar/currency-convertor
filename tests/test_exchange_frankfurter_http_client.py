@@ -10,7 +10,7 @@ class FrankfurterJsonResponseFactory(ModelFactory[FrankfurterJsonResponse]):
 
 
 @pytest.fixture
-def mock_frankfurter_exchange_service():
+def mock_frankfurter_exchange_client():
     return FrankfurterHTTPExchangeClient()
 
 
@@ -24,37 +24,37 @@ def mock_ils_rate_json_response():
 class TestFrankfurterHttpClient:
 
     @pytest.mark.asyncio
-    async def test_valid_response_fetch_currency_rate(self, httpx_mock, mock_frankfurter_exchange_service,
+    async def test_valid_response_fetch_currency_rate(self, httpx_mock, mock_frankfurter_exchange_client,
                                                       mock_ils_rate_json_response):
 
         httpx_mock.add_response(json=mock_ils_rate_json_response)
         excepted_rate = 3.5
 
-        async with mock_frankfurter_exchange_service as client:
+        async with mock_frankfurter_exchange_client as client:
             currency_rate = await client.fetch_currency_rate(USD_CODE, ILS_CODE)
 
         assert currency_rate == excepted_rate
 
     @pytest.mark.asyncio
-    async def test_invalid_response_fetch_currency_rate(self, httpx_mock, mock_frankfurter_exchange_service) -> None:
+    async def test_invalid_response_fetch_currency_rate(self, httpx_mock, mock_frankfurter_exchange_client):
 
         invalid_mock_response_data = {"some_rates": {ILS_CODE: 4.5}}
         httpx_mock.add_response(json=invalid_mock_response_data)
 
         with pytest.raises(ValueError):
-            async with mock_frankfurter_exchange_service as client:
+            async with mock_frankfurter_exchange_client as client:
                 await client.fetch_currency_rate(from_curr=USD_CODE, to_curr=ILS_CODE)
 
     @pytest.mark.asyncio
-    async def test_called_url_fetch_currency_rate(self, httpx_mock, mock_frankfurter_exchange_service,
+    async def test_called_url_fetch_currency_rate(self, httpx_mock, mock_frankfurter_exchange_client,
                                                   mock_ils_rate_json_response) -> None:
 
         httpx_mock.add_response(json=mock_ils_rate_json_response)
 
-        async with mock_frankfurter_exchange_service as client:
+        async with mock_frankfurter_exchange_client as client:
             await client.fetch_currency_rate(USD_CODE, ILS_CODE)
 
-        excepted_request_url = f"{mock_frankfurter_exchange_service.BASE_URL}/latest?from={USD_CODE}&to={ILS_CODE}"
+        excepted_request_url = f"{mock_frankfurter_exchange_client.BASE_URL}/latest?from={USD_CODE}&to={ILS_CODE}"
         actual_request_url = httpx_mock.get_request().url
 
         assert actual_request_url == excepted_request_url

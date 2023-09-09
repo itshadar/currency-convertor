@@ -1,45 +1,30 @@
 import pytest
-from main import main
+import main
 from tests.utils.constants import USD_CODE, ILS_CODE
-from tests.conftest import mock_exchange_client
-from currency_exchange.input_handler import HandleFile
-
-
-def pytest_addoption(parser):
-    parser.addoption("--file", action="store", default="test_input.txt")
-
-
-@pytest.fixture(scope="session")
-def mock_file_path(pytestconfig):
-    return pytestconfig.getoption("file")
-
-
-@pytest.fixture()
-def mock_main_arguments(mocker):
-    mock_arguments = mocker.patch('main.Arguments')
-    mock_args = mocker.Mock()
-    mock_args.get_file_path.return_value = mock_file_path
-    mock_arguments.return_value = mock_args
-    return mock_arguments
+from currency_exchange.exchange import Exchange
 
 
 class TestMain:
 
-    @staticmethod
-    def excepted_print_out(values, currency_rate):
-        return "".join([f"{float(value) * currency_rate}\n" for value in values[HandleFile.VALUES_INDEX]])
-
-    @pytest.mark.parametrize("mock_input, excepted_rate", [
-                             ((USD_CODE, ILS_CODE, [100.0, 200]), "mock_exchange_client.MOCK_RATE"),
-                             ((USD_CODE, USD_CODE, [100.0, 200]), "1.0")])
     @pytest.mark.asyncio
-    async def test_main_conversion(self, mocker, capsys, mock_exchange_client, mock_main_arguments, excepted_rate, mock_input):
+    async def test_run_async_success(self, mocker, capsys):
 
-        excepted_rate = eval(excepted_rate)
-        mocker.patch('main.FrankfurterHTTPExchangeClient', return_value=mock_exchange_client)
-        mocker.patch('main.HandleFile.handle_input', mocker.AsyncMock(return_value=mock_input))
+        mocked_handle_input = mocker.patch('currency_exchange.input_handler.HandleFile.handle_input',
+                                           new_callable=mocker.AsyncMock)
+        mocked_handle_input.return_value = (USD_CODE, ILS_CODE, [100, 200])
 
-        await main()
+        mock_exchange = mocker.MagicMock(spec=Exchange)
+        mock_exchange.convert_currency.side_effect = lambda x: x * 3.5
+        mocker.patch('currency_exchange.exchange.Exchange.create', return_value=mock_exchange)
 
-        out, err = capsys.readouterr()
-        assert out == TestMain.excepted_print_out(mock_input, excepted_rate)
+        # Call the function
+        await main.run_async('fake_file_path')
+
+        # Check the captured output
+        captured = capsys.readouterr()
+        excepted_out = "350.0\n700.0\n"
+        assert excepted_out == captured.out
+
+        # Ensure the mock methods were called
+        mocked_handle_input.assert_called_once_with('fake_file_path')
+        mock_exchange.convert_currency.assert_has_calls([mocker.call(100), mocker.call(200)])

@@ -1,44 +1,40 @@
 import pytest
 from currency_exchange.exchange_http_client import HTTPExchangeClient
 from httpx import HTTPError, Response, HTTPStatusError
-from pytest_mock import mocker
 
 
 @pytest.fixture
 def mock_http_exchange_client():
-    return MockHTTPExchangeClient(base_url="http://test/")
+    return HTTPExchangeClient(base_url="http://test/")
 
 
-class MockHTTPExchangeClient(HTTPExchangeClient):
-
-    async def fetch_currency_rate(self, from_curr, to_curr):
-        pass
+def mock_fetch_currency_rate(mocker, side_effect):
+    """mock the fetch_currency_rate method with different side effect."""
+    mocker.patch.object(HTTPExchangeClient, 'fetch_currency_rate', side_effect=side_effect)
 
 
 class TestHTTPExchangeClient:
 
     @pytest.mark.asyncio
     async def test_http_status_error_catching(self, mocker, mock_http_exchange_client):
-
-        # Mock the fetch_currency_rate method to always raise HTTPStatusError"""
         mocked_response = Response(400, request=None, content="Mocked bad request")
-        mocker.patch.object(MockHTTPExchangeClient, 'fetch_currency_rate',
-                            side_effect=HTTPStatusError(message="Mocked http status error", response=mocked_response, request=None))
+        side_effect = HTTPStatusError(message="Mocked http status error", response=mocked_response, request=None)
+
+        mock_fetch_currency_rate(mocker, side_effect)
 
         with pytest.raises(ConnectionError):
-            async with mock_http_exchange_client as client:
-                await client.fetch_currency_rate("USD", "EUR")
+            async with mock_http_exchange_client:
+                await mock_http_exchange_client.fetch_currency_rate("USD", "EUR")
 
     @pytest.mark.asyncio
     async def test_general_http_error_catching(self, mocker, mock_http_exchange_client):
-        # Mock the fetch_currency_rate method to always raise HTTPError"""
+        side_effect = HTTPError(message="Mocked http error")
 
-        mocker.patch.object(MockHTTPExchangeClient, 'fetch_currency_rate',
-                            side_effect=HTTPError(message="Mocked http status error"))
+        mock_fetch_currency_rate(mocker, side_effect)
 
         with pytest.raises(ConnectionError):
-            async with mock_http_exchange_client as client:
-                await client.fetch_currency_rate("USD", "EUR")
+            async with mock_http_exchange_client:
+                await mock_http_exchange_client.fetch_currency_rate("USD", "EUR")
 
     @pytest.mark.asyncio
     async def test_catching_value_error(self, mock_http_exchange_client):

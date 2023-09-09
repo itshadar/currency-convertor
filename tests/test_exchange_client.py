@@ -14,12 +14,14 @@ class TestExchangeClient:
 
     @pytest.mark.asyncio
     async def test_exchange_get_same_currency_rate(self, mock_exchange_client):
-        actual_currency_rate = await mock_exchange_client.get_exchange_currency_rate(from_curr=USD_CODE, to_curr=USD_CODE)
+        actual_currency_rate = await mock_exchange_client.get_exchange_currency_rate(from_curr=USD_CODE,
+                                                                                     to_curr=USD_CODE)
         excepted_rate = 1.0
         assert actual_currency_rate == excepted_rate
 
     @pytest.mark.asyncio
     async def test_exchange_get_currency_rate(self, mock_exchange_client):
-        actual_currency_rate = await mock_exchange_client.get_exchange_currency_rate(from_curr=USD_CODE, to_curr=ILS_CODE)
+        actual_currency_rate = await mock_exchange_client.get_exchange_currency_rate(from_curr=USD_CODE,
+                                                                                     to_curr=ILS_CODE)
         excepted_rate = mock_exchange_client.MOCK_RATE
         assert actual_currency_rate == excepted_rate
