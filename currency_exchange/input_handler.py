@@ -1,23 +1,5 @@
-from argparse import Namespace, ArgumentParser #TODO: REPLACE TO ARGX
 from aiofiles import open
 from typing import Final
-
-
-class Arguments:
-
-    # TODO: change to typer
-    def __init__(self):
-        self.args = Arguments.parse_arguments()
-
-    @staticmethod
-    def parse_arguments() -> Namespace:
-        """Parse command-line arguments."""
-        parser = ArgumentParser(description='currency exchange program')
-        parser.add_argument('-f', '--file', required=True, help='The file path for the currency exchange file.')
-        return parser.parse_args()
-
-    def get_file_path(self):
-        return self.args.file
 
 
 class HandleFile:
