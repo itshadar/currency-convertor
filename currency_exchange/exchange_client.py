@@ -1,46 +1,58 @@
-from abc import ABC, abstractmethod
-from typing import Final
-import httpx
+from abc import ABC
+from typing import Final, Protocol
 
-# Implement Interface (IExchangeClient) -> ExchangeClientBase -> -Some-Client
-class ExchangeService(ABC):
+
+class IExchangeClient(Protocol):
+
+    async def get_exchange_currency_rate(self, from_curr: str, to_curr: str) -> float:
+        """
+
+        """
+
+    async def _get_currency_rate(self, from_curr: str, to_curr: str) -> float:
+        """
+
+        """
+
+    async def fetch_currency_rate(self, from_curr: str, to_curr: str) -> float:
+        """
+        """
+
+
+class ExchangeClientBase(IExchangeClient, ABC):
+    """All subclasses of this class can raise ConnectionError / ValueError."""
 
     SAME_CURR_RATE: Final[float] = 1.0
 
-    # Fix code smelling (error handling)
-    async def get_currency_rate(self, from_curr: str, to_curr: str) -> float:
-        """"Get the currency rate."""
-        if from_curr == to_curr:
-            return ExchangeService.SAME_CURR_RATE
-        else:
-            try:
-                return await self.fetch_currency_rate(from_curr, to_curr)
-            except httpx.HTTPError as e:
-                raise ConnectionError(f"An http error occurred while fetching the currency rate") from e
-            except KeyError:
-                raise KeyError("Internal Server Error")
+    def __init_subclass__(cls):
+        cls.fetch_currency_rate = cls.check_same_currency(cls.fetch_currency_rate)
 
-    @abstractmethod
-    async def fetch_currency_rate(self, from_curr, to_curr) -> float:
-        """Fetch the currency rate from a data source."""
-
-
-class FrankfurterExchangeService(ExchangeService):
-
-    # Implement context manager that can manage async connection pool context manager (__aenter__ and __aexit)
-    # Read about managing connection pool with httpx
-    async def fetch_currency_rate(self, from_curr: str, to_curr: str) -> float:
-
+    async def get_exchange_currency_rate(self, from_curr: str, to_curr: str) -> float:
         try:
-            async with httpx.AsyncClient() as client:
-                response = await client.get(
-                    f"https://api.frankfurter.app/latest?from={from_curr}&to={to_curr}")
+            return await self._get_currency_rate(from_curr, to_curr)
 
-            response.raise_for_status()
-            response_data = response.json()
-            # TODO: use pydantic
-            return float(response_data["rates"][to_curr])
+        except ConnectionError as e:
+            raise ConnectionError(f"An connection error occurred while fetching the currency rate") from e
 
-        # Raise abstract errors (follows by the interface's guideline)
-        except (httpx.HTTPError, KeyError) as e:
-            raise
+        except ValueError as e:
+            raise ValueError("Internal Server Error") from e
+
+    @staticmethod
+    def check_same_currency(func):
+        async def inner(*args, **kwargs):
+
+            # TODO: TEST THIS!!!!
+            from_curr_val, to_curr_val = args[1], args[2]
+            if from_curr_val == to_curr_val:
+                return ExchangeClientBase.SAME_CURR_RATE
+
+            return await func(*args, *kwargs)
+
+        return inner
+
+    async def _get_currency_rate(self, from_curr: str, to_curr: str) -> float:
+        """Call the fetch_currency_rate method. """
+        #return await self.fetch_currency_rate(from_curr, to_curr)
+
+    async def fetch_currency_rate(self, from_curr, to_curr) -> float:
+        """Fetch the currency rate from a data source. Raise connection error if failed"""
