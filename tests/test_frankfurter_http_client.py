@@ -1,4 +1,3 @@
-
 from polyfactory.factories.pydantic_factory import ModelFactory
 from currency_exchange.exchange_frankfurter_http_client import FrankfurterJsonResponse
 from currency_exchange.exchange_frankfurter_http_client import FrankfurterHTTPExchangeClient

@@ -1,6 +1,6 @@
 import pytest
 from currency_exchange.exchange_http_client import HTTPExchangeClient
-from httpx import HTTPError, Response, Request, HTTPStatusError, MockTransport, AsyncClient
+from httpx import HTTPError, Response, HTTPStatusError
 from pytest_mock import mocker
 
 
