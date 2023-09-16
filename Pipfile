@@ -4,15 +4,20 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-requests = "*"
-pytest = "*"
-pytest-cov = "*"
 httpx = "*"
+pydantic = "*"
+aiofiles = "*"
+typer = {extras = ["all"], version = "*"}
+
+[dev-packages]
+pip = "*"
+install = "*"
+polyfactory = "*"
 pytest-asyncio = "*"
 pytest-mock = "*"
 pytest-httpx = "*"
-
-[dev-packages]
+pytest = "*"
+pytest-cov = "*"
 
 [requires]
 python_version = "3.10"
