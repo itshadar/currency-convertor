@@ -1,8 +1,8 @@
 import anyio
-import sys
 from currency_exchange.exchange import Exchange
 from currency_exchange.exchange_frankfurter_http_client import FrankfurterHTTPExchangeClient
-from currency_exchange.input_handler import HandleFile
+from currency_exchange.input_handler import HandleTXTFile, ParsedInput
+from currency_exchange.output_emitter import ConsoleOutputEmitter
 import typer
 
 app = typer.Typer()
@@ -15,17 +15,18 @@ def main(file: str = typer.Option(..., "-f", "--file", help="The file path for t
 
 async def run_async(file: str):
 
-    input_file_path = file
-
-    from_curr, to_curr, amounts = await HandleFile.handle_input(input_file_path)
-
     exchange_client = FrankfurterHTTPExchangeClient()
+    output_emitter = ConsoleOutputEmitter()
+    input_handler = HandleTXTFile()
+
+    parsed_input: ParsedInput = await input_handler.handle_input(file)
 
     try:
-        exchange = await Exchange.create(from_curr, to_curr, exchange_client)
-        [sys.stdout.write(f"{exchange.convert_currency(amount)}\n") for amount in amounts]
+        exchange = await Exchange.create(parsed_input.from_curr, parsed_input.to_curr, exchange_client)
+        [output_emitter.emit_output(output=f"{exchange.convert_currency(amount)}\n") for amount in parsed_input.values]
+
     except (ConnectionError, ValueError) as e:
-        print(f"Error: {e}")
+        output_emitter.emit_output(output=f"Error: {e}")
 
 if __name__ == "__main__":
     app()

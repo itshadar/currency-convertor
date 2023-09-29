@@ -1,8 +1,26 @@
 from aiofiles import open
 from typing import Final
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
 
 
-class HandleFile:
+@dataclass
+class ParsedInput:
+    from_curr: str
+    to_curr: str
+    values: list[float]
+
+
+class BaseInputHandler(ABC):
+
+    @abstractmethod
+    async def handle_input(self, file_path) -> ParsedInput:
+        """
+        handle the input in a manner implemented by the concrete class.
+        """
+
+
+class HandleTXTFile(BaseInputHandler):
 
     FROM_CURR_INDEX: Final[int] = 0
     TO_CURR_INDEX: Final[int] = 1
@@ -16,16 +34,12 @@ class HandleFile:
 
         return lines
 
-    @staticmethod
-    def parse_input(lines: list[str]) -> tuple[str, str, list[float]]:
-        from_curr = lines[HandleFile.FROM_CURR_INDEX].strip()
-        to_curr = lines[HandleFile.TO_CURR_INDEX].strip()
-        values = list(map(float, lines[HandleFile.VALUES_INDEX:]))
-        return from_curr, to_curr, values
+    def parse_input(self, lines: list[str]) -> ParsedInput:
+        from_curr = lines[self.FROM_CURR_INDEX].strip()
+        to_curr = lines[self.TO_CURR_INDEX].strip()
+        values = list(map(float, lines[self.VALUES_INDEX:]))
+        return ParsedInput(from_curr=from_curr, to_curr=to_curr, values=values)
 
-    @staticmethod
-    async def handle_input(file_path) -> tuple[str, str, list[float]]:
-        lines = await HandleFile.read_file(file_path)
-        return HandleFile.parse_input(lines)
-
-
+    async def handle_input(self, file_path) -> ParsedInput:
+        lines = await HandleTXTFile.read_file(file_path)
+        return self.parse_input(lines)

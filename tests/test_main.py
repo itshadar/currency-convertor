@@ -2,6 +2,7 @@ import pytest
 import main
 from tests.utils.constants import USD_CODE, ILS_CODE
 from currency_exchange.exchange import Exchange
+from currency_exchange.input_handler import ParsedInput
 
 
 class TestMain:
@@ -9,9 +10,9 @@ class TestMain:
     @pytest.mark.asyncio
     async def test_run_async_success(self, mocker, capsys):
 
-        mocked_handle_input = mocker.patch('currency_exchange.input_handler.HandleFile.handle_input',
-                                           new_callable=mocker.AsyncMock)
-        mocked_handle_input.return_value = (USD_CODE, ILS_CODE, [100, 200])
+        mocked_handle_input = mocker.patch('currency_exchange.input_handler.HandleTXTFile.handle_input',
+                                           new_callable=mocker.AsyncMock,
+                                           return_value=ParsedInput(from_curr=USD_CODE, to_curr=ILS_CODE, values=[100, 200]))
 
         mock_exchange = mocker.MagicMock(spec=Exchange)
         mock_exchange.convert_currency.side_effect = lambda x: x * 3.5
